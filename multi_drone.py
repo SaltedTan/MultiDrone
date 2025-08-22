@@ -127,16 +127,18 @@ def load_goal_areas_from_yaml(yaml_path):
     return goal_viz, np.array(goal_positions), np.array(goal_radii)
 
 class MultiDrone:
-    def __init__(self, num_drones, environment_file="obstacles.yaml"):
+    def __init__(self, num_drones, environment_file="obstacles.yaml", headless=False):
         """
         Initialize the multi-drone simulator.
 
         Args:
             num_drones (int): Number of drones to simulate.
             dt (float): Simulation time step (in seconds). Only used if dynamics are stepped.
+            headless (bool): If True, disables all visualisation.
         """
         self.N = num_drones        
         self._drone_radius = 0.3  # Sphere radius used for collision checking
+        self.headless = headless
 
         # Placeholder for drone positions
         self.configuration = np.zeros((self.N, 3), dtype=np.float32)
@@ -184,7 +186,8 @@ class MultiDrone:
             self._fcl_objects[i].setTransform(fcl.Transform(np.eye(3), self.configuration[i].tolist()))
             self.trajectories[i] = [self.configuration[i].copy()]
 
-        self._init_plot()
+        if not self.headless:
+            self._init_plot()
 
     def set_configuration(self, configuration):
         """
@@ -358,6 +361,9 @@ class MultiDrone:
         Args:
             path (list[np.ndarray]): A list of (N, 3) configurations from start to goal.
         """
+        if self.headless:
+            return
+        
         assert len(path) >= 2, "Path must contain at least 2 configurations."
         assert all(p.shape == (self.N, 3) for p in path), "Each config must be of shape (N, 3)"
 
