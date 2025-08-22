@@ -1,4 +1,3 @@
-import numpy as np
 from multi_drone import MultiDrone
 from planner import BiasedRRTConnect
 
@@ -8,11 +7,11 @@ def main():
     """
     print("Initialising Multi-Drone environment...")
     # Initialise the simulation environment for K drones
-    sim = MultiDrone(num_drones=2, environment_file="environment.yaml")
+    sim = MultiDrone(num_drones=2, environment_file="envs/env3.yaml")
     
     # --- Planner Parameters ---
-    MAX_ITERATIONS = 5000   # Maximum number of iterations
-    STEP_SIZE = 2.0         # Step size for tree extension (epsilon)
+    MAX_ITERATIONS = 50000  # Maximum number of iterations
+    STEP_SIZE = 3.0         # Step size for tree extension (epsilon)
     P_OBS = 0.2             # Probability of obstacle-biased sampling (20%)
     
     print("Setting up Biased RRT-Connect planner...")
