@@ -7,7 +7,7 @@ def main():
     """
     print("Initialising Multi-Drone environment...")
     # Initialise the simulation environment for K drones
-    sim = MultiDrone(num_drones=2, environment_file="envs/env3.yaml")
+    sim = MultiDrone(num_drones=2, environment_file="q4_envs/02_cluttered.yaml")
     
     # --- Planner Parameters ---
     MAX_ITERATIONS = 50000  # Maximum number of iterations
