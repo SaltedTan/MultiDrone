@@ -1,0 +1,32 @@
+bounds:
+  x: [0, 50]
+  y: [0, 50]
+  z: [0, 50]
+
+# Drones start on opposite sides of the y-axis
+initial_configuration: [[5, 2, 25], [5, 48, 25]]
+
+# Goals are on the opposite side of where they started
+goals:
+  - {position: [45, 48, 25], radius: 1.5}
+  - {position: [45, 2, 25], radius: 1.5}
+
+obstacles:
+  # A solid wall at x=25 with a single 6x6 passage in the center
+  # The wall is constructed from four large, overlapping boxes.
+  - type: box # Left of passage
+    position: [25, 11, 25]
+    size: [20, 22, 50]
+    color: orange
+  - type: box # Right of passage
+    position: [25, 39, 25]
+    size: [20, 22, 50]
+    color: orange
+  - type: box # Below passage
+    position: [25, 25, 11]
+    size: [20, 6, 22]
+    color: orange
+  - type: box # Above passage
+    position: [25, 25, 39]
+    size: [20, 6, 22]
+    color: orange

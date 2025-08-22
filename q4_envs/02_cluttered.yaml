@@ -1,0 +1,35 @@
+bounds:
+  x: [0, 50]
+  y: [0, 50]
+  z: [0, 50]
+  
+initial_configuration: [[5, 5, 5], [7, 5, 5]]
+
+goals:
+  - {position: [45, 45, 45], radius: 1.5}
+  - {position: [43, 45, 45], radius: 1.5}
+
+obstacles:
+  # Four tall pillars creating a "forest"
+  - type: box
+    position: [15, 15, 25]
+    size: [8, 8, 50]
+    color: orange
+  - type: box
+    position: [35, 15, 25]
+    size: [8, 8, 50]
+    color: orange
+  - type: box
+    position: [15, 35, 25]
+    size: [8, 8, 50]
+    color: orange
+  - type: box
+    position: [35, 35, 25]
+    size: [8, 8, 50]
+    color: orange
+    
+  # A central sphere to block the most direct route
+  - type: sphere
+    position: [25, 25, 25]
+    radius: 10
+    color: red
