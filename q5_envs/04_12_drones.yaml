@@ -1,0 +1,37 @@
+bounds:
+  x: [0, 50]
+  y: [0, 50]
+  z: [0, 50]
+  
+initial_configuration:
+  - [10, 40, 25]
+  - [10, 38, 32.5]
+  - [10, 32.5, 38]
+  - [10, 25, 40]
+  - [10, 17.5, 38]
+  - [10, 12, 32.5]
+  - [10, 10, 25]
+  - [10, 12, 17.5]
+  - [10, 17.5, 12]
+  - [10, 25, 10]
+  - [10, 32.5, 12]
+  - [10, 38, 17.5]
+
+goals:
+  - {position: [40, 10, 25], radius: 1.5}
+  - {position: [40, 12, 17.5], radius: 1.5}
+  - {position: [40, 17.5, 12], radius: 1.5}
+  - {position: [40, 25, 10], radius: 1.5}
+  - {position: [40, 32.5, 12], radius: 1.5}
+  - {position: [40, 38, 17.5], radius: 1.5}
+  - {position: [40, 40, 25], radius: 1.5}
+  - {position: [40, 38, 32.5], radius: 1.5}
+  - {position: [40, 32.5, 38], radius: 1.5}
+  - {position: [40, 25, 40], radius: 1.5}
+  - {position: [40, 17.5, 38], radius: 1.5}
+  - {position: [40, 12, 32.5], radius: 1.5}
+
+obstacles:
+  - {type: box, position: [25, 25, 25], size: [6, 6, 25], color: orange}
+  - {type: sphere, position: [25, 15, 35], radius: 4, color: red}
+  - {type: sphere, position: [25, 35, 15], radius: 4, color: red}
