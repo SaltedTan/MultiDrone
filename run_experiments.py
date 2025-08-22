@@ -3,14 +3,14 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 import time
+import argparse
+import yaml
 
-# Make sure all required files are in the same directory or accessible
 from multi_drone import MultiDrone
 from planner import BiasedRRTConnect
 
 # --- Experiment Configuration ---
 NUM_TRIALS = 10
-ENVIRONMENTS_DIR = 'q4_envs'
 PLANNER_PARAMS = {
     'max_iter': 50000,
     'step_size': 3.0,
@@ -19,8 +19,17 @@ PLANNER_PARAMS = {
 
 def run_single_trial(env_file: str) -> dict:
     """Runs a single motion planning trial and returns the results."""
-    # Initialize simulation in headless mode to disable visualisation
-    sim = MultiDrone(num_drones=2, environment_file=env_file, headless=True)
+    # Determine the number of drones from the environment file
+    with open(env_file, 'r') as f:
+        config = yaml.safe_load(f)
+        try:
+            num_drones = len(config['initial_configuration'])
+        except (KeyError, TypeError):
+            print(f"\nError: Could not determine number of drones from {env_file}.")
+            return {'success': False, 'planning_time': -1, 'iterations': -1, 'path_length': np.nan, 'total_nodes': -1}
+
+    # Initialise simulation in headless mode with the correct number of drones
+    sim = MultiDrone(num_drones=num_drones, environment_file=env_file, headless=True)
     
     planner = BiasedRRTConnect(
         sim=sim,
@@ -44,29 +53,27 @@ def calculate_ci(data: pd.Series) -> float:
     """Calculates the half-width of the 95% confidence interval."""
     if len(data) < 2:
         return 0.0
-    # Using t-distribution for small sample sizes
     mean, sem = data.mean(), stats.sem(data)
-    # Get the interval half-width
     return sem * stats.t.ppf((1 + 0.95) / 2., len(data)-1)
 
-def generate_latex_table(summary_stats: pd.DataFrame):
+def generate_latex_table(summary_stats: pd.DataFrame, caption: str):
     """Generates a LaTeX formatted table from the summary statistics."""
-    header = r"""
-\begin{table}[h!]
-\centering
-\caption{Planner Performance Across Environments (N=10 trials)}
-\label{tab:performance}
-\begin{tabular}{|l|c|c|c|c|c|}
-\hline
-\textbf{Environment} & \textbf{Success} & \textbf{Time (s)} & \textbf{Path Len.} & \textbf{Iters.} & \textbf{Nodes} \\
-\hline"""
+    header = f"""
+\\begin{{table}}[h!]
+\\centering
+\\caption{{{caption} (N=10 trials)}}
+\\label{{tab:performance_scaling}}
+\\begin{{tabular}}{{|l|c|c|c|c|c|}}
+\\hline
+\\textbf{{Environment}} & \\textbf{{Success}} & \\textbf{{Time (s)}} & \\textbf{{Path Len.}} & \\textbf{{Iters.}} & \\textbf{{Nodes}} \\\\
+\\hline"""
     footer = r"""\hline
 \end{tabular}
 \end{table}"""
     
     body = ""
     for index, row in summary_stats.iterrows():
-        env_name = index.replace('_', '\\_') # Escape underscores for LaTeX
+        env_name = index.replace('_', '\\_')
         sr = f"{row['success_rate']:.0f}\\%"
         
         if row['success_rate'] > 0:
@@ -85,15 +92,19 @@ def generate_latex_table(summary_stats: pd.DataFrame):
 
 def main():
     """Main function to run all experiments and report results."""
-    if not os.path.exists(ENVIRONMENTS_DIR):
-        print(f"Error: Directory '{ENVIRONMENTS_DIR}' not found.")
+    parser = argparse.ArgumentParser(description="Run motion planning experiments.")
+    parser.add_argument('environments_dir', type=str, help="Directory containing the environment YAML files.")
+    args = parser.parse_args()
+
+    if not os.path.exists(args.environments_dir):
+        print(f"Error: Directory '{args.environments_dir}' not found.")
         return
 
-    env_files = sorted([f for f in os.listdir(ENVIRONMENTS_DIR) if f.endswith('.yaml')])
+    env_files = sorted([f for f in os.listdir(args.environments_dir) if f.endswith('.yaml')])
     all_results = {}
 
     for env_file in env_files:
-        env_path = os.path.join(ENVIRONMENTS_DIR, env_file)
+        env_path = os.path.join(args.environments_dir, env_file)
         print(f"\n===== Running Trials for: {env_file} =====")
         
         trial_results = []
@@ -107,7 +118,6 @@ def main():
             
         all_results[env_file.replace('.yaml', '')] = pd.DataFrame(trial_results)
 
-    # --- Process and Print Results ---
     summary_data = []
     print("\n\n" + "="*40)
     print("        EXPERIMENT SUMMARY")
@@ -116,13 +126,8 @@ def main():
     for env_name, results_df in all_results.items():
         successful_trials = results_df[results_df['success'] == True]
         success_rate = (len(successful_trials) / len(results_df)) * 100
+        stats_summary = {'environment': env_name, 'success_rate': success_rate}
         
-        stats_summary = {
-            'environment': env_name,
-            'success_rate': success_rate,
-        }
-        
-        # Calculate stats only for successful runs
         if not successful_trials.empty:
             metrics = ['planning_time', 'path_length', 'iterations', 'total_nodes']
             for metric in metrics:
@@ -131,7 +136,6 @@ def main():
         
         summary_data.append(stats_summary)
         
-        # Print to terminal
         print(f"\n--- Environment: {env_name} ---")
         print(f"  Success Rate: {success_rate:.1f}% ({len(successful_trials)}/{len(results_df)})")
         if not successful_trials.empty:
@@ -146,9 +150,9 @@ def main():
         else:
             print("  No successful trials to report statistics.")
 
-    # Generate and print the LaTeX table
     summary_df = pd.DataFrame(summary_data).set_index('environment')
-    generate_latex_table(summary_df)
+    table_caption = f"Planner Performance vs. {'Complexity' if 'q4' in args.environments_dir else 'Number of Drones'}"
+    generate_latex_table(summary_df, table_caption)
 
 if __name__ == '__main__':
     main()
